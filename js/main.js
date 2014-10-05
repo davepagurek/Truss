@@ -17,6 +17,11 @@ Truss.init(function() {
     "template": "<ul></ul>",
     "properties": {
       "items": "ul"
+    },
+    "events": {
+      "$items:inputChange": function() {
+        console.log(this.property("items"));
+      }
     }
   });
 
@@ -29,5 +34,5 @@ Truss.init(function() {
       ListItem.new()
     ]
   });
-  document.getElementById("musicApp").appendChild(l.element);
+  document.body.appendChild(l.element);
 });
