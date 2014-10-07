@@ -2,8 +2,11 @@ var Truss = (function() {
   
   var t={};
   
-  t.init = function(f) {
-    window.addEventListener("load", f);
+  t.init = function() {
+    var args = Array.prototype.slice.call(arguments);
+    window.addEventListener("load", function() {
+      args[0].apply(this, args.slice(1));
+    });
   };
   
   //Return a component template object
@@ -163,6 +166,8 @@ var Truss = (function() {
           c[index] = settings.functions[index];
         }
       }
+      
+      c.triggerEvent("init");
       
       return c;
       
