@@ -58,32 +58,34 @@ var Truss = (function() {
         if (!responses[action]) {
           responses[action] = [response];
           
-          //Set up DOM event listeners if necessary
-          var el = action.substring(0, index.indexOf(":"));
-          var ev = action.substring(index.indexOf(":")+1);
-          if (el) {
-            if (el.indexOf("$") == -1) {
-              c.element.querySelector(el).addEventListener(ev, function() {
-                c.triggerEvent(action);
-              });
-            } else {
-              if (el=="$") {
-                c.element.addEventListener(ev, function() {
-                  c.triggerEvent(action, this);
+          if (action.indexOf(":") != -1) {
+            //Set up DOM event listeners if necessary
+            var el = action.substring(0, index.indexOf(":"));
+            var ev = action.substring(index.indexOf(":")+1);
+            if (el) {
+              if (el.indexOf("$") == -1) {
+                c.element.querySelector(el).addEventListener(ev, function() {
+                  c.triggerEvent(action);
                 });
               } else {
-                var prop = el.substring(1);
-                if (settings.properties[prop] && s[prop]) {
-                  if (s[prop].Truss) {
-                    s[prop].addListener(ev, function() {
-                      c.triggerEvent(action, s.properties[prop]);
-                    });
-                  } else if (s[prop] instanceof Array) {
-                    Array.prototype.forEach.call(s[prop], function(ch) {
-                      ch.addListener(ev, function() {
-                        c.triggerEvent(action, ch);
+                if (el=="$") {
+                  c.element.addEventListener(ev, function() {
+                    c.triggerEvent(action, this);
+                  });
+                } else {
+                  var prop = el.substring(1);
+                  if (settings.properties[prop] && s[prop]) {
+                    if (s[prop].Truss) {
+                      s[prop].addListener(ev, function() {
+                        c.triggerEvent(action, s.properties[prop]);
                       });
-                    });
+                    } else if (s[prop] instanceof Array) {
+                      Array.prototype.forEach.call(s[prop], function(ch) {
+                        ch.addListener(ev, function() {
+                          c.triggerEvent(action, ch);
+                        });
+                      });
+                    }
                   }
                 }
               }
@@ -123,8 +125,12 @@ var Truss = (function() {
       
       c.setProperty = function(property, value, add) {
         var p = settings.properties[property];
-        if (p) {
+        if (typeof value == "function") {
+          properties[property]=value.bind(this);
+        } else {
           properties[property]=value;
+        }
+        if (p) {
           if (p == "$") {
             setTemplate(c.element, value, add);
           } else if (p.indexOf(":")>=1) {
@@ -161,6 +167,12 @@ var Truss = (function() {
         }
       }
       
+      if (s.events) {
+        for (index in s.events) {
+          c.addListener(index, s.events[index].bind(c));
+        }
+      }
+
       if (settings.functions) {
         for (index in settings.functions) {
           c[index] = settings.functions[index];
